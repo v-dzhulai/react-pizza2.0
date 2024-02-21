@@ -1,7 +1,9 @@
 import Categories from './components/Categories';
 import Header from './components/Header';
-import PizzaBlock from './components/PizzaBlock';
+import PizzaBlock from './components/PizzaBlock/PizzaBlock';
 import Sort from './components/Sort';
+
+import db from './assets/db.json';
 
 import './scss/app.scss';
 
@@ -17,18 +19,12 @@ function App() {
                         <Sort />
                     </div>
 
-                    <h2 className="content__title">Все пиццы</h2>
+                    <h2 className="content__title">Всі піци</h2>
 
                     <div className="content__items">
-                        <PizzaBlock />
-                        <PizzaBlock />
-                        <PizzaBlock />
-                        <PizzaBlock />
-                        <PizzaBlock />
-                        <PizzaBlock />
-                        <PizzaBlock />
-                        <PizzaBlock />
-                        <PizzaBlock />
+                        {db.pizzas.map((obj, i) => {
+                            return <PizzaBlock key={`${i}_${obj.name}`} {...obj} />;
+                        })}
                     </div>
                 </div>
             </div>
