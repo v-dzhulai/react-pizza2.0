@@ -1,13 +1,18 @@
 import { useState } from 'react';
 
-function Sort() {
+function Sort({ value, onClickSortType }) {
     const [visible, setVisible] = useState(false);
-    const [selected, setSelected] = useState(0);
-    const sortBy = ['популярністю', 'ціною', 'абеткою'];
-    const name = sortBy[selected];
+    const sortBy = [
+        { name: 'популярністю (DESC)', sortProperty: 'rating' },
+        { name: 'популярністю (ASC)', sortProperty: '-rating' },
+        { name: 'ціною (DESC)', sortProperty: 'price' },
+        { name: 'ціною (ASC)', sortProperty: '-price' },
+        { name: 'абеткою (DESC)', sortProperty: 'name' },
+        { name: 'абеткою (ASC)', sortProperty: '-name' },
+    ];
 
     function select(index) {
-        setSelected(index);
+        onClickSortType(index);
         setVisible(false);
     }
 
@@ -27,19 +32,21 @@ function Sort() {
                 </svg>
 
                 <b>Сортувати за:</b>
-                <span onClick={() => setVisible(!visible)}>{name}</span>
+                <span onClick={() => setVisible(!visible)}>{value.name}</span>
             </div>
 
             {visible && (
                 <div className="sort__popup">
                     <ul>
-                        {sortBy.map((title, i) => {
+                        {sortBy.map((obj, i) => {
                             return (
                                 <li
-                                    key={`${i}_${title}`}
-                                    onClick={() => select(i)}
-                                    className={selected === i ? 'active' : ''}>
-                                    {title}
+                                    key={`${i}_${obj.name}`}
+                                    onClick={() => select(obj)}
+                                    className={
+                                        value.sortProperty === obj.sortProperty ? 'active' : ''
+                                    }>
+                                    {obj.name}
                                 </li>
                             );
                         })}
