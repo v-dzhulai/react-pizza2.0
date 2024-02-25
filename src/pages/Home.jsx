@@ -1,23 +1,35 @@
-import { useContext, useEffect, useState } from 'react';
+import axios from 'axios';
+import qs from 'qs';
+
+import { useContext, useEffect, useRef, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 import Categories from '../components/Categories';
 import PizzaBlock from '../components/PizzaBlock';
 import Skeleton from '../components/PizzaBlock/Skeleton';
-import Sort from '../components/Sort';
+import Sort, { sortList } from '../components/Sort';
 import Pagination from '../components/Pagination';
 
 import { SearchContext } from '../App';
+import { setCategoryId, setCurrentPage, setFilters } from '../redux/slices/filterSlice';
 
 function Home() {
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const isSearch = useRef();
+    const isMounted = useRef(false);
+
+    const { categoryId, sortType, currentPage } = useSelector((state) => state.filter);
+
     const { searchValue } = useContext(SearchContext);
     const [items, setItems] = useState([]);
     const [isLoading, setLoading] = useState(true);
-    const [categoryId, setCategoryId] = useState(0);
-    const [sortType, setSortType] = useState({ name: 'популярністю', sortProperty: 'rating' });
-    const [currentPage, setCurrentPage] = useState(1);
-    const categories = ['Всі', "М'ясні", 'Веґетаріанські', 'Ґриль', 'Гострі', 'Закриті'];
 
-    useEffect(() => {
+    const categories = ['Всі', "М'ясні", 'Веґетаріанські', 'Ґриль', 'Гострі', 'Закриті'];
+    const dependencies = [categoryId, sortType.sortProperty, searchValue, currentPage];
+
+    function requestPizzas() {
         setLoading(true);
 
         const order = sortType.sortProperty.includes('-') ? 'asc' : 'desc';
@@ -25,17 +37,53 @@ function Home() {
         const category = categoryId > 0 ? `category=${categoryId}` : '';
         const search = searchValue ? `&search=${searchValue}` : '';
 
-        fetch(
-            `https://65d60b38f6967ba8e3bd5b93.mockapi.io/api/react-pizza/items?page=${currentPage}&limit=4&${category}&sortBy=${sortBy}&order=${order}${search}`,
-        )
-            .then((res) => res.json())
-            .then((arr) => {
-                setItems(arr);
+        axios
+            .get(
+                `https://65d60b38f6967ba8e3bd5b93.mockapi.io/api/react-pizza/items?page=${currentPage}&limit=4&${category}&sortBy=${sortBy}&order=${order}${search}`,
+            )
+            .then((res) => {
+                setItems(res.data);
                 setLoading(false);
             });
+    }
 
+    // If we change parameters and three was first render
+    useEffect(() => {
+        if (isMounted.current) {
+            const queryString = qs.stringify({
+                sortProperty: sortType.sortProperty,
+                categoryId,
+                currentPage,
+            });
+
+            navigate(`?${queryString}`);
+        }
+        isMounted.current = true;
+    }, dependencies);
+
+    // If three was first render we check URL-parameters and save it in redux
+    useEffect(() => {
+        if (window.location.search) {
+            const params = qs.parse(window.location.search.substring(1));
+            const sort = sortList.find((obj) => obj.sortProperty === params.sortProperty);
+
+            dispatch(
+                setFilters({
+                    ...params,
+                    sort,
+                }),
+            );
+
+            isSearch.current = true;
+        }
+    }, []);
+
+    // If three was first render we request pizzas
+    useEffect(() => {
         window.scrollTo(0, 0);
-    }, [categoryId, sortType, searchValue, currentPage]);
+        if (!isSearch.current) requestPizzas();
+        isSearch.current = false;
+    }, dependencies);
 
     const pizzas = items.map((obj, i) => <PizzaBlock key={`${i}_${obj.name}`} {...obj} />);
 
@@ -48,17 +96,21 @@ function Home() {
             <div className="content__top">
                 <Categories
                     value={categoryId}
-                    onClickCategory={(id) => setCategoryId(id)}
+                    onClickCategory={(id) => dispatch(setCategoryId(id))}
                     categories={categories}
                 />
-                <Sort value={sortType} onClickSortType={(id) => setSortType(id)} />
+
+                <Sort />
             </div>
 
             <h2 className="content__title">{categories[categoryId]} піци</h2>
 
             <div className="content__items">{isLoading ? skeleton : pizzas}</div>
 
-            <Pagination currentPage={currentPage} onChangePage={(num) => setCurrentPage(num)} />
+            <Pagination
+                currentPage={currentPage}
+                onChangePage={(num) => dispatch(setCurrentPage(num))}
+            />
         </>
     );
 }
