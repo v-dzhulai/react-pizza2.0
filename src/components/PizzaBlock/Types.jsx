@@ -1,16 +1,11 @@
-import { useState } from 'react';
-
-function Types({ types }) {
-    const [indexActive, setIndexActive] = useState(0);
-    const typesTitle = ['тонке', 'традиційне'];
-
+function Types({ types, indexActiveType, setIndexActiveType, typesTitle }) {
     return (
         <ul>
             {types.map((item, index) => {
                 return (
                     <li
-                        className={indexActive === index ? 'active' : ''}
-                        onClick={() => setIndexActive(index)}
+                        className={indexActiveType === index ? 'active' : ''}
+                        onClick={() => setIndexActiveType(index)}
                         key={`${index}_${item}`}>
                         {typesTitle[index]}
                     </li>

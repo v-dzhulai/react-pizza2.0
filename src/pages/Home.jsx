@@ -17,7 +17,7 @@ import { setCategoryId, setCurrentPage, setFilters } from '../redux/slices/filte
 function Home() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const isSearch = useRef();
+    const isSearch = useRef(false);
     const isMounted = useRef(false);
 
     const { categoryId, sortType, currentPage } = useSelector((state) => state.filter);
@@ -27,7 +27,6 @@ function Home() {
     const [isLoading, setLoading] = useState(true);
 
     const categories = ['Всі', "М'ясні", 'Веґетаріанські', 'Ґриль', 'Гострі', 'Закриті'];
-    const dependencies = [categoryId, sortType.sortProperty, searchValue, currentPage];
 
     function requestPizzas() {
         setLoading(true);
@@ -47,7 +46,7 @@ function Home() {
             });
     }
 
-    // If we change parameters and three was first render
+    // If we change parameters and there was first render
     useEffect(() => {
         if (isMounted.current) {
             const queryString = qs.stringify({
@@ -59,18 +58,18 @@ function Home() {
             navigate(`?${queryString}`);
         }
         isMounted.current = true;
-    }, dependencies);
+    }, [categoryId, sortType.sortProperty, currentPage]);
 
-    // If three was first render we check URL-parameters and save it in redux
+    // If there was first render we check URL-parameters and save it in redux
     useEffect(() => {
         if (window.location.search) {
             const params = qs.parse(window.location.search.substring(1));
-            const sort = sortList.find((obj) => obj.sortProperty === params.sortProperty);
+            const sortType = sortList.find((obj) => obj.sortProperty === params.sortProperty);
 
             dispatch(
                 setFilters({
                     ...params,
-                    sort,
+                    sortType,
                 }),
             );
 
@@ -78,12 +77,16 @@ function Home() {
         }
     }, []);
 
-    // If three was first render we request pizzas
+    // If there was first render we request pizzas
     useEffect(() => {
         window.scrollTo(0, 0);
-        if (!isSearch.current) requestPizzas();
+
+        if (!isSearch.current) {
+            requestPizzas();
+        }
+
         isSearch.current = false;
-    }, dependencies);
+    }, [categoryId, sortType.sortProperty, searchValue, currentPage]);
 
     const pizzas = items.map((obj, i) => <PizzaBlock key={`${i}_${obj.name}`} {...obj} />);
 

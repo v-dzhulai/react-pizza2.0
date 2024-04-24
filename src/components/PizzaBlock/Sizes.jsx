@@ -1,8 +1,4 @@
-import { useState } from 'react';
-
-function Sizes({ sizes }) {
-    const [activeSize, setActiveSize] = useState(0);
-
+function Sizes({ sizes, activeSize, setActiveSize }) {
     return (
         <ul>
             {sizes.map((item, index) => {
