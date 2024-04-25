@@ -1,5 +1,4 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { calcTotalPrice } from '../../utils/calcTotalPrice';
 
 const initialState = {
     totalPrice: 0,

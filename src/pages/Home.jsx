@@ -13,6 +13,7 @@ import Pagination from '../components/Pagination';
 
 import { SearchContext } from '../App';
 import { setCategoryId, setCurrentPage, setFilters } from '../redux/slices/filterSlice';
+import { fetchPizzas } from '../redux/slices/pizzasSlice';
 
 function Home() {
     const navigate = useNavigate();
@@ -23,27 +24,18 @@ function Home() {
     const { categoryId, sortType, currentPage } = useSelector((state) => state.filter);
 
     const { searchValue } = useContext(SearchContext);
-    const [items, setItems] = useState([]);
-    const [isLoading, setLoading] = useState(true);
+    const { items, status } = useSelector((state) => state.pizzas);
+    // const [isLoading, setLoading] = useState(true);
 
     const categories = ['Всі', "М'ясні", 'Веґетаріанські', 'Ґриль', 'Гострі', 'Закриті'];
 
-    function requestPizzas() {
-        setLoading(true);
-
+    async function getPizzas() {
         const order = sortType.sortProperty.includes('-') ? 'asc' : 'desc';
         const sortBy = sortType.sortProperty.replace('-', '');
         const category = categoryId > 0 ? `category=${categoryId}` : '';
         const search = searchValue ? `&search=${searchValue}` : '';
 
-        axios
-            .get(
-                `https://65d60b38f6967ba8e3bd5b93.mockapi.io/api/react-pizza/items?page=${currentPage}&limit=4&${category}&sortBy=${sortBy}&order=${order}${search}`,
-            )
-            .then((res) => {
-                setItems(res.data);
-                setLoading(false);
-            });
+        dispatch(fetchPizzas({ order, sortBy, category, search, currentPage }));
     }
 
     // If we change parameters and there was first render
@@ -82,7 +74,7 @@ function Home() {
         window.scrollTo(0, 0);
 
         if (!isSearch.current) {
-            requestPizzas();
+            getPizzas();
         }
 
         isSearch.current = false;
@@ -108,7 +100,18 @@ function Home() {
 
             <h2 className="content__title">{categories[categoryId]} піци</h2>
 
-            <div className="content__items">{isLoading ? skeleton : pizzas}</div>
+            {status === 'error' ? (
+                <div className="content__error-info">
+                    <h2>
+                        Сталася помилка <icon>😕</icon>
+                    </h2>
+
+                    <p>На жаль не вдалося отримати піци...</p>
+                    <p>Повторіть спробу пізніше.</p>
+                </div>
+            ) : (
+                <div className="content__items">{status === 'loading' ? skeleton : pizzas}</div>
+            )}
 
             <Pagination
                 currentPage={currentPage}
