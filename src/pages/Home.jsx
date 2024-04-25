@@ -1,7 +1,6 @@
-import axios from 'axios';
 import qs from 'qs';
 
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
@@ -12,8 +11,13 @@ import Sort, { sortList } from '../components/Sort';
 import Pagination from '../components/Pagination';
 
 import { SearchContext } from '../App';
-import { setCategoryId, setCurrentPage, setFilters } from '../redux/slices/filterSlice';
-import { fetchPizzas } from '../redux/slices/pizzasSlice';
+import {
+    selectFilter,
+    setCategoryId,
+    setCurrentPage,
+    setFilters,
+} from '../redux/slices/filterSlice';
+import { fetchPizzas, selectPizzaData } from '../redux/slices/pizzasSlice';
 
 function Home() {
     const navigate = useNavigate();
@@ -21,11 +25,8 @@ function Home() {
     const isSearch = useRef(false);
     const isMounted = useRef(false);
 
-    const { categoryId, sortType, currentPage } = useSelector((state) => state.filter);
-
-    const { searchValue } = useContext(SearchContext);
-    const { items, status } = useSelector((state) => state.pizzas);
-    // const [isLoading, setLoading] = useState(true);
+    const { categoryId, sortType, currentPage, searchValue } = useSelector(selectFilter);
+    const { items, status } = useSelector(selectPizzaData);
 
     const categories = ['Всі', "М'ясні", 'Веґетаріанські', 'Ґриль', 'Гострі', 'Закриті'];
 

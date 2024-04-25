@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { setSortType, setVisible } from '../redux/slices/filterSlice';
+import { selectFilter, setSortType, setVisible } from '../redux/slices/filterSlice';
 import { useDispatch, useSelector } from 'react-redux';
 
 export const sortList = [
@@ -13,7 +13,7 @@ export const sortList = [
 
 function Sort() {
     const dispatch = useDispatch();
-    const { sortType, visible } = useSelector((state) => state.filter);
+    const { sortType, visible } = useSelector(selectFilter);
     const sortRef = useRef();
 
     function select(index) {
